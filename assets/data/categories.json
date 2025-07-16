@@ -1,0 +1,125 @@
+{
+  "categories": [
+    {
+      "id": "personajes",
+      "name": "Personajes bíblicos",
+      "description": "Actúa como estos personajes de la Biblia",
+      "iconPath": "assets/images/fotocategorias.png",
+      "gradientColors": [4283456741, 4285034541],
+      "words": [
+        "Adán", "Eva", "Noé", "Abraham", "Sara", "Isaac", "Jacob", "José", "Miriam", "Moisés",
+        "Aarón", "Josué", "Débora", "Gedeón", "Sansón", "Rut", "Samuel", "Saúl", "David", "Salomón",
+        "Ester", "Job", "Jonás", "Daniel", "Eliseo", "Elías", "Isaías", "Jeremías", "Ezequiel", "María"
+      ]
+    },
+    {
+      "id": "historias",
+      "name": "Historias bíblicas",
+      "description": "Representa estas historias de la Biblia",
+      "iconPath": "assets/images/fotocategorias.png",
+      "gradientColors": [4278231145, 4278896264],
+      "words": [
+        "La creación del mundo",
+        "La caída del hombre", 
+        "El diluvio universal", 
+        "La torre de Babel",
+        "El sacrificio de Isaac", 
+        "José en Egipto", 
+        "La zarza ardiente", 
+        "Las plagas de Egipto",
+        "El éxodo de Egipto", 
+        "La entrega de la Ley", 
+        "La conquista de Canaán", 
+        "El juicio de Débora",
+        "Gedeón contra Madián", 
+        "Sansón y Dalila", 
+        "La historia de Rut"
+      ]
+    },
+    {
+      "id": "lugares",
+      "name": "Lugares bíblicos",
+      "description": "Muestra estos lugares sagrados",
+      "iconPath": "assets/images/fotocategorias.png",
+      "gradientColors": [4291618854, 4293256716],
+      "words": [
+        "Edén", "Ararat", "Babel", "Egipto", "Mar Rojo", "Monte Sinaí", "Jericó",
+        "Jerusalén", "Nazaret", "Belén", "Caná", "Getsemaní"
+      ]
+    },
+    {
+      "id": "objetos",
+      "name": "Objetos y símbolos",
+      "description": "Actúa estos objetos sagrados",
+      "iconPath": "assets/images/fotocategorias.png",
+      "gradientColors": [4285752073, 4291019782],
+      "words": [
+        "Arca del pacto", 
+        "Tablas de la Ley", 
+        "Candelabro de oro", 
+        "Maná", 
+        "Aceite de la unción",
+        "Corona de espinas", 
+        "Cáliz", 
+        "Vara de Aarón", 
+        "Pan de la proposición", 
+        "Incienso", 
+        "Cruz", 
+        "Paloma"
+      ]
+    },
+    {
+      "id": "milagros",
+      "name": "Milagros de Jesús",
+      "description": "Representa estos milagros de Jesús",
+      "iconPath": "assets/images/fotocategorias.png",
+      "gradientColors": [4286165522, 4287808526],
+      "words": [
+        "Cambio de agua en vino", 
+        "Sanidad del paralítico", 
+        "Calmar la tempestad", 
+        "Expulsión de demonios",
+        "Sanidad del ciego de nacimiento", 
+        "Resurrección de Lázaro", 
+        "Curación del leproso",
+        "Milagrosa pesca de peces", 
+        "Curación del sordo y mudo", 
+        "Resurrección del hijo de la viuda de Naín",
+        "La higuera marchita", 
+        "Jesús camina sobre el agua"
+      ]
+    },
+    {
+      "id": "parabolas",
+      "name": "Parábolas",
+      "description": "Actúa estas parábolas de Jesús",
+      "iconPath": "assets/images/fotocategorias.png",
+      "gradientColors": [4278228788, 4278604861],
+      "words": [
+        "El sembrador", 
+        "La cizaña", 
+        "El grano de mostaza", 
+        "La levadura", 
+        "La perla de gran precio",
+        "La red", 
+        "El hijo pródigo", 
+        "Los trabajadores de la viña", 
+        "El buen samaritano",
+        "El tesoro escondido", 
+        "Las diez vírgenes", 
+        "Los talentos"
+      ]
+    },
+    {
+      "id": "profetas",
+      "name": "Profetas bíblicos",
+      "description": "Actúa como estos profetas",
+      "iconPath": "assets/images/fotocategorias.png",
+      "gradientColors": [4280361647, 4283782390],
+      "words": [
+        "Isaías", "Jeremías", "Ezequiel", "Daniel", "Oseas", "Joel", "Amós", "Abdías",
+        "Jonás", "Miqueas", "Nahúm", "Habacuc", "Sofonías", "Hageo", "Zacarías"
+      ]
+    }
+  ]
+} 
