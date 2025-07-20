@@ -230,27 +230,23 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 
   void _startGame() {
-    try {
-      // Usar el GameBloc existente y seleccionar la categoría
-      context.read<GameBloc>().add(SelectCategoryEvent(widget.category));
-      
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const GameScreen(),
-        ),
-      );
-    } catch (e) {
-      // Si no hay GameBloc disponible, crear uno nuevo
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BlocProvider(
-            create: (context) => GameBloc()..add(SelectCategoryEvent(widget.category)),
-            child: const GameScreen(),
-          ),
-        ),
-      );
-    }
+    // Reinicia el estado del juego para asegurar un flujo limpio
+    context.read<GameBloc>().add(ResetGameEvent());
+    // Selecciona la categoría
+    context.read<GameBloc>().add(SelectCategoryEvent(widget.category));
+    // Navega a la pantalla de juego
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const GameScreen(),
+      ),
+    );
+    // Dispara el evento de cuenta regresiva de forma segura
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final gameBloc = context.read<GameBloc>();
+        gameBloc.add(StartCountdownEvent());
+      }
+    });
   }
 } 

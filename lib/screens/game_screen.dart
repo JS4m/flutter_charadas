@@ -20,33 +20,34 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    // Permitir orientación horizontal en el juego
-    _allowHorizontalOrientation();
-    
+    // NO bloquear orientación aquí - se manejará según el estado del juego
     // Ocultar barras del sistema para experiencia completa
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    
-    // Iniciar la cuenta regresiva cuando se crea la pantalla
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // CRÍTICO: Verificar que el widget sigue montado antes de disparar eventos
-      if (mounted) {
-        context.read<GameBloc>().add(StartCountdownEvent());
-      }
-    });
+    // NO disparar StartCountdownEvent aquí
   }
 
-  /// Permite orientación horizontal en el juego
-  Future<void> _allowHorizontalOrientation() async {
+
+
+  /// Bloquea solo orientación horizontal durante el juego
+  Future<void> _lockHorizontalOrientation() async {
     try {
       await SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
-
     } catch (e) {
-      // Error permitiendo orientación
+      // Error bloqueando orientación horizontal
+    }
+  }
+
+  /// Restaura orientación vertical cuando termina el juego
+  Future<void> _restoreVerticalOrientation() async {
+    try {
+      await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+    } catch (e) {
+      // Error restaurando orientación vertical
     }
   }
 
@@ -101,60 +102,72 @@ class _GameScreenState extends State<GameScreen> {
     // Quitar el Scaffold interior - el padre (HomeScreen) maneja el Scaffold
     return SafeArea(
       child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isLandscape = constraints.maxWidth > constraints.maxHeight;
-            final screenSize = Size(constraints.maxWidth, constraints.maxHeight);
-            return BlocBuilder<GameBloc, GameState>(
-              builder: (context, state) {
-                if (state is GameCountdown) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: screenSize.height * 0.7,
-                        maxHeight: screenSize.height,
-                      ),
-                      child: _buildCountdownScreen(context, state.gameState, isLandscape, screenSize),
-                    ),
-                  );
-                }
-                if (state is GamePlaying) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: screenSize.height * 0.7,
-                        maxHeight: screenSize.height,
-                      ),
-                      child: _buildGameScreen(context, state.gameState, isLandscape, screenSize),
-                    ),
-                  );
-                }
-                if (state is GamePaused) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: screenSize.height * 0.7,
-                        maxHeight: screenSize.height,
-                      ),
-                      child: _buildPauseScreen(context, state.gameState, isLandscape, screenSize),
-                    ),
-                  );
-                }
-                if (state is GameOver) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: screenSize.height * 0.7,
-                        maxHeight: screenSize.height,
-                      ),
-                      child: _buildGameOverScreen(context, state.gameState, isLandscape, screenSize),
-                    ),
-                  );
-                }
-                return _buildLoadingScreen();
-              },
-            );
+        child: BlocListener<GameBloc, GameState>(
+          listener: (context, state) {
+            // Manejar orientación según el estado del juego
+            if (state is GameCountdown || state is GamePlaying || state is GamePaused) {
+              // Bloquear solo horizontal durante el juego
+              _lockHorizontalOrientation();
+            } else if (state is GameOver) {
+              // Restaurar orientación vertical cuando termina el juego
+              _restoreVerticalOrientation();
+            }
           },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isLandscape = constraints.maxWidth > constraints.maxHeight;
+              final screenSize = Size(constraints.maxWidth, constraints.maxHeight);
+              return BlocBuilder<GameBloc, GameState>(
+                builder: (context, state) {
+                  if (state is GameCountdown) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: screenSize.height * 0.7,
+                          maxHeight: screenSize.height,
+                        ),
+                        child: _buildCountdownScreen(context, state.gameState, isLandscape, screenSize),
+                      ),
+                    );
+                  }
+                  if (state is GamePlaying) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: screenSize.height * 0.7,
+                          maxHeight: screenSize.height,
+                        ),
+                        child: _buildGameScreen(context, state.gameState, isLandscape, screenSize),
+                      ),
+                    );
+                  }
+                  if (state is GamePaused) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: screenSize.height * 0.7,
+                          maxHeight: screenSize.height,
+                        ),
+                        child: _buildPauseScreen(context, state.gameState, isLandscape, screenSize),
+                      ),
+                    );
+                  }
+                  if (state is GameOver) {
+                    return SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: screenSize.height * 0.7,
+                          maxHeight: screenSize.height,
+                        ),
+                        child: _buildGameOverScreen(context, state.gameState, isLandscape, screenSize),
+                      ),
+                    );
+                  }
+                  return _buildLoadingScreen();
+                },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -171,8 +184,8 @@ class _GameScreenState extends State<GameScreen> {
     final gameBloc = context.read<GameBloc>();
     final navigatorContext = context;
     
-    // Restaurar orientaciones de forma gradual para evitar desbordamiento
-    await _restoreEnvironment();
+    // Restaurar orientación vertical al salir del juego
+    await _restoreVerticalOrientation();
     
     // Verificar que el widget sigue montado antes de usar las referencias capturadas
     if (!mounted) return;

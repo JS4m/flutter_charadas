@@ -20,14 +20,17 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   
   GameStateModel _gameStateModel = const GameStateModel();
 
-  GameBloc({CategoryRepository? categoryRepository})
+  /// Bandera para mostrar u omitir la cuenta regresiva
+  final bool showCountdown;
+
+  GameBloc({CategoryRepository? categoryRepository, this.showCountdown = true})
       : _categoryRepository = categoryRepository ?? CategoryRepository(),
         super(GameInitial()) {
     // Inicializar box de forma segura
     _initializeHiveBox();
     
-    // Restaurar estado si existe
-    _restoreStateFromHive();
+    // NO restaurar estado automáticamente - empezar siempre limpio
+    // _restoreStateFromHive();
     
     on<LoadCategoriesEvent>(_onLoadCategories);
     on<SelectCategoryEvent>(_onSelectCategory);
@@ -82,33 +85,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     }
   }
 
-  Future<void> _restoreStateFromHive() async {
-    if (!_isHiveAvailable) return;
-    
-    try {
-      final data = _hiveBox!.get('game_state');
-      if (data != null) {
-        final categoryId = data['selectedCategoryId'];
-        WordCategory? selectedCategory;
-        if (categoryId != null) {
-          selectedCategory = await _categoryRepository.getCategoryById(categoryId);
-        }
-        _gameStateModel = GameStateModel(
-          selectedCategory: selectedCategory,
-          remainingWords: List<String>.from(data['remainingWords'] ?? []),
-          currentWord: data['currentWord'] ?? '',
-          score: data['score'] ?? 0,
-          timer: data['timer'] ?? 90,
-          countdown: data['countdown'] ?? 6,
-          status: GameStatus.values[data['status'] ?? 0],
-          canAnswer: data['canAnswer'] ?? true,
-          tiltAngle: data['tiltAngle'] ?? 0.0,
-        );
-      }
-    } catch (e) {
-      debugPrint('Error restaurando estado desde Hive: $e');
-    }
-  }
+
 
   @override
   Future<void> close() {
@@ -129,6 +106,11 @@ class GameBloc extends Bloc<GameEvent, GameState> {
 
   /// Valida si una transición de estado es válida
   bool _isValidStateTransition(GameStatus from, GameStatus to) {
+    // Permitir todas las transiciones durante countdown para evitar bloqueos
+    if (from == GameStatus.countdown) {
+      return true;
+    }
+    
     switch (from) {
       case GameStatus.countdown:
         return to == GameStatus.playing || to == GameStatus.gameOver;
@@ -189,15 +171,20 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   void _onStartCountdown(StartCountdownEvent event, Emitter<GameState> emit) {
-    if (_isDisposed || _gameStateModel.selectedCategory == null) return;
+    debugPrint('_onStartCountdown llamado');
     
+    if (_isDisposed || _gameStateModel.selectedCategory == null) {
+      debugPrint('_onStartCountdown cancelado - disposed: $_isDisposed, category: ${_gameStateModel.selectedCategory}');
+      return;
+    }
+
     // Limpiar recursos previos antes de iniciar
     _cleanupResources();
     
     _updateGameState((state) => state.copyWith(
       remainingWords: List.from(state.selectedCategory!.words)..shuffle(),
       status: GameStatus.countdown,
-      countdown: 6,
+      countdown: 7,
       timer: 90,
       score: 0,
       currentWord: '',
@@ -205,43 +192,56 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       tiltAngle: 0.0,
     ));
     
+    debugPrint('Estado inicial configurado - countdown: ${_gameStateModel.countdown}');
     _safeEmit(GameCountdown(_gameStateModel), emit);
     _startCountdownTimer();
   }
 
   void _startCountdownTimer() {
     if (_isDisposed) return;
-    
+
+    debugPrint('Iniciando countdown timer con valor: ${_gameStateModel.countdown}');
+
     _countdownTimer?.cancel();
+
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_isDisposed || !timer.isActive) {
+      if (_isDisposed) {
+        debugPrint('Timer cancelado - disposed');
         timer.cancel();
         return;
       }
-      
-      if (_gameStateModel.status != GameStatus.countdown) {
-        timer.cancel();
-        return;
-      }
-      
-      if (_gameStateModel.countdown > 1) {
-        add(UpdateCountdownEvent(_gameStateModel.countdown - 1));
+
+      final currentCountdown = _gameStateModel.countdown;
+      debugPrint('Countdown actual: $currentCountdown');
+
+      if (currentCountdown > 1) {
+        final newCountdown = currentCountdown - 1;
+        debugPrint('Decrementando countdown a: $newCountdown');
+        add(UpdateCountdownEvent(newCountdown));
       } else {
+        debugPrint('Countdown terminado, iniciando juego');
         timer.cancel();
-        if (_gameStateModel.status == GameStatus.countdown && !_isDisposed) {
-          add(NextWordEvent());
-          add(StartTimerEvent());
-          _startMotionSensorService();
-        }
+        add(StartTimerEvent());
       }
     });
   }
 
   void _onUpdateCountdown(UpdateCountdownEvent event, Emitter<GameState> emit) {
-    if (_isDisposed || _gameStateModel.status != GameStatus.countdown) return;
+    debugPrint('_onUpdateCountdown llamado con valor: ${event.countdown}');
+    
+    if (_isDisposed) {
+      debugPrint('_onUpdateCountdown cancelado - disposed');
+      return;
+    }
+    
+    if (_gameStateModel.status != GameStatus.countdown) {
+      debugPrint('_onUpdateCountdown cancelado - status: ${_gameStateModel.status}');
+      return;
+    }
     
     _updateGameState((state) => state.copyWith(countdown: event.countdown));
     _safeEmit(GameCountdown(_gameStateModel), emit);
+    debugPrint('Countdown actualizado a: ${_gameStateModel.countdown}');
   }
 
   void _onStartTimer(StartTimerEvent event, Emitter<GameState> emit) {
@@ -250,6 +250,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     _updateGameState((state) => state.copyWith(status: GameStatus.playing));
     _safeEmit(GamePlaying(_gameStateModel), emit);
     _startGameTimer();
+    _startMotionSensorService();
+    
+    // Iniciar con la primera palabra
+    add(NextWordEvent());
   }
 
   void _startGameTimer() {
@@ -431,18 +435,38 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   }
 
   void _onCancelCountdown(CancelCountdownEvent event, Emitter<GameState> emit) {
+    debugPrint('_onCancelCountdown llamado');
+    
     if (_isDisposed) return;
     
     _cleanupResources();
+    
+    // Cancelar el countdown y volver al estado inicial
     _gameStateModel = const GameStateModel();
-    add(LoadCategoriesEvent());
+    _safeEmit(GameInitial(), emit);
   }
 
   void _onResetGame(ResetGameEvent event, Emitter<GameState> emit) {
+    debugPrint('_onResetGame llamado');
+    
     if (_isDisposed) return;
     
     _cleanupResources();
+    
+    // Resetear completamente el estado del juego
     _gameStateModel = const GameStateModel();
-    add(LoadCategoriesEvent());
+    
+    // Limpiar el estado persistido en Hive
+    if (_isHiveAvailable) {
+      try {
+        _hiveBox!.delete('game_state');
+        debugPrint('Estado de Hive limpiado');
+      } catch (e) {
+        debugPrint('Error limpiando Hive: $e');
+      }
+    }
+    
+    debugPrint('Estado del juego reseteado completamente');
+    _safeEmit(GameInitial(), emit);
   }
 } 
