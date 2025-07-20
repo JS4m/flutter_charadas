@@ -243,25 +243,34 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
+                          // Título colapsado que aparece cuando se hace scroll
+                          if (shrinkPercentage > 0.5)
+                            Opacity(
+                              opacity: shrinkPercentage,
+                              child: const Padding(
+                                padding: EdgeInsets.only(top: 16),
+                                child: Text(
+                                  'Categorías',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
                   ),
                 ),
-                title: AnimatedOpacity(
-                  opacity: shrinkPercentage > 0.5 ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: const Text(
-                    'Categorías',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                titlePadding: const EdgeInsets.only(left: 24, bottom: 16),
+                title: null,
+                titlePadding: EdgeInsets.zero,
                 collapseMode: CollapseMode.parallax,
+                stretchModes: const [
+                  StretchMode.zoomBackground,
+                  StretchMode.blurBackground,
+                ],
               );
             },
           ),

@@ -230,14 +230,27 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   }
 
   void _startGame() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => BlocProvider(
-          create: (context) => GameBloc()..add(SelectCategoryEvent(widget.category)),
-          child: const GameScreen(),
+    try {
+      // Usar el GameBloc existente y seleccionar la categoría
+      context.read<GameBloc>().add(SelectCategoryEvent(widget.category));
+      
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const GameScreen(),
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      // Si no hay GameBloc disponible, crear uno nuevo
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BlocProvider(
+            create: (context) => GameBloc()..add(SelectCategoryEvent(widget.category)),
+            child: const GameScreen(),
+          ),
+        ),
+      );
+    }
   }
 } 

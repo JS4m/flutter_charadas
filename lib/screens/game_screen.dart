@@ -99,12 +99,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     // Quitar el Scaffold interior - el padre (HomeScreen) maneja el Scaffold
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) async {
-        if (didPop) return;
-        await _exitGame(context);
-      },
+    return SafeArea(
       child: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -174,6 +169,7 @@ class _GameScreenState extends State<GameScreen> {
     
     // Capturar todas las referencias del contexto ANTES de cualquier operación async
     final gameBloc = context.read<GameBloc>();
+    final navigatorContext = context;
     
     // Restaurar orientaciones de forma gradual para evitar desbordamiento
     await _restoreEnvironment();
@@ -199,7 +195,11 @@ class _GameScreenState extends State<GameScreen> {
     
     // Ahora usar Navigator.pop() para desmontar la pantalla de juego limpiamente
     if (mounted) {
-      Navigator.pop(context);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.pop(navigatorContext);
+        }
+      });
     }
   }
 
@@ -223,7 +223,10 @@ class _GameScreenState extends State<GameScreen> {
               top: screenSize.height * 0.02,
               left: screenSize.width * 0.02,
               child: GestureDetector(
-                onTap: () => _exitGame(context),
+                onTap: () {
+                  final navigatorContext = context;
+                  _exitGame(navigatorContext);
+                },
                 child: Container(
                   padding: EdgeInsets.all(screenSize.height * 0.015),
                   decoration: BoxDecoration(
@@ -298,7 +301,10 @@ class _GameScreenState extends State<GameScreen> {
               top: screenSize.height * 0.015,
               left: screenSize.width * 0.015,
               child: GestureDetector(
-                onTap: () => _exitGame(context),
+                onTap: () {
+                  final navigatorContext = context;
+                  _exitGame(navigatorContext);
+                },
                 child: Container(
                   padding: EdgeInsets.all(screenSize.height * 0.01),
                   decoration: BoxDecoration(
@@ -548,7 +554,10 @@ class _GameScreenState extends State<GameScreen> {
                     minHeight: screenSize.height * 0.08,
                   ),
                   child: GestureDetector(
-                    onTap: () => _exitGame(context),
+                    onTap: () {
+                      final navigatorContext = context;
+                      _exitGame(navigatorContext);
+                    },
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.02),
@@ -610,7 +619,10 @@ class _GameScreenState extends State<GameScreen> {
               top: screenSize.height * 0.02,
               left: screenSize.width * 0.02,
               child: GestureDetector(
-                onTap: () => _exitGame(context),
+                onTap: () {
+                  final navigatorContext = context;
+                  _exitGame(navigatorContext);
+                },
                 child: Container(
                   padding: EdgeInsets.all(screenSize.height * 0.015),
                   decoration: BoxDecoration(

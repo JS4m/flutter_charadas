@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/word_category.dart';
-import 'dart:io';
 
 class ResponsiveCategoryCard extends StatelessWidget {
   final WordCategory category;

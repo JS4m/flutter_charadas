@@ -122,11 +122,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         child: MaterialApp(
           key: ValueKey('app_$_rebuildCounter'),
           title: 'Charadas Bíblicas',
-                      theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B82F6)),
-              useMaterial3: true,
+                      theme: ThemeData.from(
+            colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B82F6)),
+            useMaterial3: true,
+          ).copyWith(
+            textTheme: const TextTheme().apply(
               fontFamily: 'System',
             ),
+          ),
           home: HomeScreen(key: ValueKey('home_screen_$_rebuildCounter')),
           debugShowCheckedModeBanner: false,
         ),
@@ -143,9 +146,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             key: ValueKey('app_$_rebuildCounter'),
             title: 'Charadas Bíblicas',
             theme: darkMode
-                ? ThemeData.dark().copyWith(
-                    colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B82F6), brightness: Brightness.dark),
+                ? ThemeData.dark(
                     useMaterial3: true,
+                  ).copyWith(
+                    colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B82F6), brightness: Brightness.dark),
                     textTheme: const TextTheme().apply(
                       fontFamily: 'System',
                       bodyColor: Colors.white,
@@ -154,11 +158,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       decorationColor: Colors.transparent,
                     ),
                   )
-                : ThemeData(
+                : ThemeData.from(
                     colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B82F6)),
                     useMaterial3: true,
-                    fontFamily: 'System',
+                  ).copyWith(
                     textTheme: const TextTheme().apply(
+                      fontFamily: 'System',
                       bodyColor: Colors.black,
                       displayColor: Colors.black,
                       decoration: TextDecoration.none,

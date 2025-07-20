@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 enum TiltDirection {  
@@ -24,7 +23,7 @@ class MotionSensorService {
   // Estado interno
   bool _isActive = false;
   bool _canAnswer = true;
-  bool _isOrientationLocked = false;
+  final bool _isOrientationLocked = false;
 
   bool get isActive => _isActive;
   bool get isOrientationLocked => _isOrientationLocked;
@@ -65,45 +64,7 @@ class MotionSensorService {
     debugPrint('[MotionSensorService] Servicio detenido');
   }
 
-  /// Bloquea la orientación horizontal
-  Future<void> _lockHorizontalOrientation() async {
-    try {
-      // Verificar si ya está bloqueada para evitar conflictos
-      if (_isOrientationLocked) {
-        debugPrint('[MotionSensorService] Orientación ya bloqueada, saltando...');
-        return;
-      }
-      
-      // Bloquear solo orientaciones horizontales
-      await SystemChrome.setPreferredOrientations([
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-      
-      _isOrientationLocked = true;
-      debugPrint('[MotionSensorService] Orientación horizontal bloqueada');
-    } catch (e) {
-      _handleError('Error bloqueando orientación: $e');
-    }
-  }
 
-  /// Desbloquea la orientación
-  void _unlockOrientation() {
-    try {
-      // Permitir todas las orientaciones
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
-      ]);
-      
-      _isOrientationLocked = false;
-      debugPrint('[MotionSensorService] Orientación desbloqueada');
-    } catch (e) {
-      _handleError('Error desbloqueando orientación: $e');
-    }
-  }
 
   /// Inicia el sensor de giroscopio usando la lógica exacta del ejemplo
   void _startGyroscope() {
