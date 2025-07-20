@@ -19,12 +19,9 @@ void main() async {
     // Continuar sin persistencia si hay error
   }
   
-  // Configurar orientaciones por defecto (responsive)
+  // Bloquear orientación vertical para pantallas principales
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
   ]);
   
   // Deshabilitar el corrector ortográfico del sistema para evitar subrayados amarillos
@@ -106,14 +103,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         _rebuildCounter++;
       });
       
-      // Restaurar orientaciones después de un delay
+      // Restaurar orientación vertical bloqueada
       Future.delayed(const Duration(milliseconds: 200), () {
         if (mounted) {
           SystemChrome.setPreferredOrientations([
             DeviceOrientation.portraitUp,
-            DeviceOrientation.portraitDown,
-            DeviceOrientation.landscapeLeft,
-            DeviceOrientation.landscapeRight,
           ]);
         }
       });

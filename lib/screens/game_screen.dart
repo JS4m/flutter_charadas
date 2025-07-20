@@ -20,8 +20,8 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    // Forzar orientación horizontal al entrar al juego (incluyendo countdown)
-    _lockHorizontalOrientation();
+    // Permitir orientación horizontal en el juego
+    _allowHorizontalOrientation();
     
     // Ocultar barras del sistema para experiencia completa
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
@@ -35,16 +35,18 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  /// Bloquea la orientación horizontal
-  Future<void> _lockHorizontalOrientation() async {
+  /// Permite orientación horizontal en el juego
+  Future<void> _allowHorizontalOrientation() async {
     try {
       await SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
-      debugPrint('[GameScreen] Orientación horizontal bloqueada desde initState');
+
     } catch (e) {
-      debugPrint('[GameScreen] Error bloqueando orientación: $e');
+      // Error permitiendo orientación
     }
   }
 
@@ -52,7 +54,6 @@ class _GameScreenState extends State<GameScreen> {
   void dispose() {
     // Restaurar solo si no se restauró antes
     if (!_restored) {
-      debugPrint('[GameScreen] Restauración forzada en dispose');
       _restoreEnvironment();
       _restored = true;
     }
@@ -61,17 +62,14 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _restoreEnvironment() async {
     try {
+      // Restaurar solo orientación vertical para las pantallas principales
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
-        DeviceOrientation.portraitDown,
-        DeviceOrientation.landscapeLeft,
-        DeviceOrientation.landscapeRight,
       ]);
       await Future.delayed(const Duration(milliseconds: 100));
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-      debugPrint('[GameScreen] Entorno restaurado correctamente');
     } catch (e) {
-      debugPrint('[GameScreen] Error restaurando entorno: $e');
+      // Error restaurando entorno
     }
   }
 
@@ -103,7 +101,6 @@ class _GameScreenState extends State<GameScreen> {
     // Quitar el Scaffold interior - el padre (HomeScreen) maneja el Scaffold
     return WillPopScope(
       onWillPop: () async {
-        debugPrint('[GameScreen] onWillPop interceptado');
         await _exitGame(context);
         return false;
       },
@@ -169,10 +166,8 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _exitGame(BuildContext context) async {
     if (_restored) {
-      debugPrint('[GameScreen] _exitGame llamado pero ya restaurado');
       return;
     }
-    debugPrint('[GameScreen] _exitGame inicia restauración');
     _restored = true;
     final currentState = context.read<GameBloc>().state;
     
