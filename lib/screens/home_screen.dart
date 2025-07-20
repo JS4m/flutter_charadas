@@ -3,9 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../data/category_repository.dart';
 import '../models/word_category.dart';
-import '../widgets/responsive_category_card.dart';
 import 'category_detail_screen.dart';
-import 'game_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   bool _isDarkMode = false;
   late Box _settingsBox;
+  late ScrollController _scrollController;
 
   @override
   void initState() {
@@ -27,8 +26,27 @@ class _HomeScreenState extends State<HomeScreen> {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
     ]);
+    _scrollController = ScrollController();
+    _setupScrollListener();
     _initializeSettings();
     _loadCategories();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _setupScrollListener() {
+    // NestedScrollView maneja automáticamente el comportamiento de collapse/expand
+    // Solo necesitamos listener para efectos adicionales si es necesario
+    _scrollController.addListener(() {
+      // Performance optimized: solo actualizar estado si es necesario
+      if (!mounted) return;
+      
+      // Lógica adicional de scroll si se necesita en el futuro
+    });
   }
 
   void _initializeSettings() {
@@ -115,10 +133,140 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildResponsiveLayout(BuildContext context) {
-    return Column(
-      children: [
-        _buildModernHeader(context),
-        Expanded(
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 240.0,
+          floating: true,
+          pinned: true,
+          snap: true,
+          backgroundColor: const Color(0xFF6B73FF),
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          flexibleSpace: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final double appBarHeight = constraints.biggest.height;
+              final double statusBarHeight = MediaQuery.of(context).padding.top;
+              final double maxHeight = 240.0 - kToolbarHeight - statusBarHeight;
+              final double shrinkOffset = appBarHeight - kToolbarHeight - statusBarHeight;
+              final double shrinkPercentage = maxHeight > 0 
+                ? (1.0 - (shrinkOffset / maxHeight)).clamp(0.0, 1.0)
+                : 0.0;
+              
+              return FlexibleSpaceBar(
+                background: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF6B73FF),
+                        Color(0xFF6B73FF),
+                      ],
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 30),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header superior con badge y settings
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Opacity(
+                                opacity: 1.0 - shrinkPercentage,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.auto_awesome, color: Colors.white, size: 16),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Charadas Bíblicas',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: _onSettingsTap,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: const Icon(Icons.settings, color: Colors.white, size: 20),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          // Título principal con efecto de fade
+                          Opacity(
+                            opacity: 1.0 - shrinkPercentage,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '¡Hola! 👋',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Elige una categoría\npara empezar',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                title: AnimatedOpacity(
+                  opacity: shrinkPercentage > 0.5 ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const Text(
+                    'Categorías',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                titlePadding: const EdgeInsets.only(left: 24, bottom: 16),
+                collapseMode: CollapseMode.parallax,
+              );
+            },
+          ),
+        ),
+        SliverToBoxAdapter(
           child: Container(
             decoration: const BoxDecoration(
               color: Colors.white,
@@ -134,205 +282,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildModernHeader(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF6B73FF),
-            Color(0xFF9A82DB),
-          ],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.auto_awesome,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'Charadas Bíblicas',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: _onSettingsTap,
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.settings,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            '¡Hola! 👋',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Elige una categoría\npara empezar',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              height: 1.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildHeaderIcon(IconData icon, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 24,
-        ),
-      ),
-    );
-  }
 
-  Widget _buildRandomWordsSection(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      height: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.orange[400]!,
-            Colors.orange[600]!,
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange[400]!.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Random words in all topics',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'When you just can\'t pick',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.casino,
-                  size: 48,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  Widget _buildTopicsSection(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Topics',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(height: 16),
-        ],
-      ),
-    );
-  }
+
+
+
+
 
   Widget _buildContent(BuildContext context) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
+      return Container(
+        height: 400,
+        alignment: Alignment.center,
+        child: const CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6B73FF)),
         ),
       );
@@ -344,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
         int crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
         
         return Padding(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -365,20 +328,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              Expanded(
-                child: GridView.builder(
-                  physics: const BouncingScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 20,
-                    childAspectRatio: 0.8,
-                  ),
-                  itemCount: _categories.length,
-                  itemBuilder: (context, index) {
-                    return _buildModernCategoryCard(_categories[index], index);
-                  },
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 20,
+                  childAspectRatio: 0.8,
                 ),
+                itemCount: _categories.length,
+                itemBuilder: (context, index) {
+                  return _buildModernCategoryCard(_categories[index], index);
+                },
               ),
             ],
           ),
@@ -388,14 +350,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildModernCategoryCard(WordCategory category, int index) {
-    // Lista de imágenes que usaremos - puedes reemplazar con las tuyas
-    final imageNames = [
-      'img1.png', 'img2.png', 'img3.png', 'img4.png', 
-      'img5.png', 'img6.png', 'img7.png'
-    ];
-    
-    // Seleccionar imagen según el índice
-    final imageName = imageNames[index % imageNames.length];
+    // Lista de imágenes preparada para futuras implementaciones
+    // final imageNames = [
+    //   'img1.png', 'img2.png', 'img3.png', 'img4.png', 
+    //   'img5.png', 'img6.png', 'img7.png'
+    // ];
+    // final imageName = imageNames[index % imageNames.length];
     
     // Colores modernos para cada categoría
     final colors = [
@@ -422,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: gradientColors[0].withOpacity(0.3),
+              color: gradientColors[0].withValues(alpha: 0.3),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -440,13 +400,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: 100,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(50),
                   ),
                   child: Icon(
                     _getCategoryIcon(category.id),
                     size: 40,
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                   ),
                 ),
               ),
@@ -459,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
@@ -484,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -527,58 +487,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context) {
-    return Container(
-      height: 80,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.grid_view, 'Categories', true),
-          _buildNavItem(Icons.edit, 'Creation', false),
-          _buildNavItem(Icons.history, 'History', false),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isActive ? Colors.purple[400] : Colors.transparent,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            color: isActive ? Colors.white : Colors.grey[600],
-            size: 24,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: isActive ? Colors.purple[400] : Colors.grey[600],
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _SettingsDialog extends StatelessWidget {

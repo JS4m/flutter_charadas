@@ -5,7 +5,6 @@ import 'bloc/game_bloc.dart';
 import 'bloc/game_event.dart';
 import 'screens/home_screen.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() async {
@@ -123,11 +122,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         child: MaterialApp(
           key: ValueKey('app_$_rebuildCounter'),
           title: 'Charadas Bíblicas',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B82F6)),
-            useMaterial3: true,
-            fontFamily: 'System',
-          ),
+                      theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B82F6)),
+              useMaterial3: true,
+              fontFamily: 'System',
+            ),
           home: HomeScreen(key: ValueKey('home_screen_$_rebuildCounter')),
           debugShowCheckedModeBanner: false,
         ),

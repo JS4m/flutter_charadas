@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/word_category.dart';
+import 'dart:io';
 
 class ResponsiveCategoryCard extends StatelessWidget {
   final WordCategory category;
@@ -24,11 +25,11 @@ class ResponsiveCategoryCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.95),
+          color: Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -41,7 +42,7 @@ class ResponsiveCategoryCard extends StatelessWidget {
             children: [
               Expanded(
                 flex: 4,
-                child: _CategoryIcon(
+                child: _CategoryImage(
                   category: category,
                   size: iconSize,
                 ),
@@ -84,70 +85,87 @@ class ResponsiveCategoryCard extends StatelessWidget {
   }
 }
 
-class _CategoryIcon extends StatelessWidget {
+class _CategoryImage extends StatelessWidget {
   final WordCategory category;
   final double size;
 
-  const _CategoryIcon({
+  const _CategoryImage({
     required this.category,
     required this.size,
   });
 
   @override
   Widget build(BuildContext context) {
-    final iconData = _getIconData();
-    final iconColor = _getIconColor();
+    final imagePath = _getImagePath();
     
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: iconColor.withOpacity(0.1),
+        color: const Color(0xFF6B73FF).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Icon(
-        iconData.icon,
-        size: size,
-        color: iconData.color,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.asset(
+          imagePath,
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            // Fallback a icono si la imagen no se encuentra
+            return Icon(
+              _getFallbackIcon(),
+              size: size * 0.6,
+              color: const Color(0xFF6B73FF),
+            );
+          },
+        ),
       ),
     );
   }
 
-  ({IconData icon, Color color}) _getIconData() {
-    switch (category.name.toLowerCase()) {
-      case 'music':
-        return (icon: Icons.music_note, color: Colors.orange);
-      case 'movies':
-        return (icon: Icons.movie, color: Colors.red);
-      case 'animals':
-        return (icon: Icons.pets, color: Colors.green);
-      case 'food':
-        return (icon: Icons.restaurant, color: Colors.orange.shade700);
-      default:
-        return _getBiblicalCategoryIcon();
-    }
-  }
-
-  ({IconData icon, Color color}) _getBiblicalCategoryIcon() {
+  String _getImagePath() {
     final name = category.name.toLowerCase();
     
     if (name.contains('personajes')) {
-      return (icon: Icons.person, color: Colors.blue);
+      return 'assets/animations/Personajesbiblicos.png';
     } else if (name.contains('historias')) {
-      return (icon: Icons.book, color: Colors.teal);
+      return 'assets/animations/Historias_biblicas.png';
     } else if (name.contains('lugares')) {
-      return (icon: Icons.place, color: Colors.amber);
+      return 'assets/animations/lugares.png';
     } else if (name.contains('objetos')) {
-      return (icon: Icons.category, color: Colors.brown);
+      return 'assets/animations/objetosbiblicos.png';
     } else if (name.contains('milagros')) {
-      return (icon: Icons.auto_awesome, color: Colors.lightGreen);
+      return 'assets/animations/milagros.png';
     } else if (name.contains('parábolas')) {
-      return (icon: Icons.menu_book, color: Colors.deepPurple);
+      return 'assets/animations/parabolas.png';
     } else if (name.contains('profetas')) {
-      return (icon: Icons.record_voice_over, color: Colors.indigo);
+      return 'assets/animations/profetas_biblicos.png';
     }
     
-    return (icon: Icons.category, color: Colors.grey);
+    // Fallback para otras categorías
+    return 'assets/animations/fotocategoria.png';
   }
 
-  Color _getIconColor() => _getIconData().color;
+  IconData _getFallbackIcon() {
+    final name = category.name.toLowerCase();
+    
+    if (name.contains('personajes')) {
+      return Icons.person;
+    } else if (name.contains('historias')) {
+      return Icons.book;
+    } else if (name.contains('lugares')) {
+      return Icons.place;
+    } else if (name.contains('objetos')) {
+      return Icons.category;
+    } else if (name.contains('milagros')) {
+      return Icons.auto_awesome;
+    } else if (name.contains('parábolas')) {
+      return Icons.menu_book;
+    } else if (name.contains('profetas')) {
+      return Icons.record_voice_over;
+    }
+    
+    return Icons.category;
+  }
 } 

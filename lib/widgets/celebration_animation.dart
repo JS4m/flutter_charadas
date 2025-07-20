@@ -61,14 +61,10 @@ class _CelebrationAnimationState extends State<CelebrationAnimation>
 
   Color _getRandomColor() {
     final colors = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.yellow,
-      Colors.purple,
-      Colors.orange,
-      Colors.pink,
-      Colors.cyan,
+      const Color(0xFF6B73FF),
+      const Color(0xFF6B73FF).withValues(alpha: 0.8),
+      const Color(0xFF6B73FF).withValues(alpha: 0.6),
+      const Color(0xFF6B73FF).withValues(alpha: 0.4),
     ];
     return colors[random.nextInt(colors.length)];
   }
@@ -150,7 +146,7 @@ class ConfettiPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (final particle in particles) {
       final paint = Paint()
-        ..color = particle.color.withOpacity(1.0 - progress * 0.5)
+        ..color = particle.color.withValues(alpha: 1.0 - progress * 0.5)
         ..style = PaintingStyle.fill;
 
       final x = (particle.startX + particle.velocityX * progress) * size.width;
@@ -203,7 +199,7 @@ class SparklePainter extends CustomPainter {
     // Crear destellos aleatorios
     for (int i = 0; i < 20; i++) {
       final opacity = (sin(progress * 2 * pi + i) + 1) / 2;
-      paint.color = Colors.white.withOpacity(opacity * 0.8);
+      paint.color = Colors.white.withValues(alpha: opacity * 0.8);
 
       final x = (random.nextDouble() * size.width);
       final y = (random.nextDouble() * size.height);

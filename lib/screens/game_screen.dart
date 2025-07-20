@@ -99,10 +99,11 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     // Quitar el Scaffold interior - el padre (HomeScreen) maneja el Scaffold
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
         await _exitGame(context);
-        return false;
       },
       child: SafeArea(
         child: LayoutBuilder(
@@ -226,7 +227,7 @@ class _GameScreenState extends State<GameScreen> {
                 child: Container(
                   padding: EdgeInsets.all(screenSize.height * 0.015),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(screenSize.height * 0.02),
                   ),
                   child: Icon(
@@ -301,7 +302,7 @@ class _GameScreenState extends State<GameScreen> {
                 child: Container(
                   padding: EdgeInsets.all(screenSize.height * 0.01),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(screenSize.height * 0.015),
                   ),
                   child: Icon(
@@ -323,7 +324,7 @@ class _GameScreenState extends State<GameScreen> {
                 child: Container(
                   padding: EdgeInsets.all(screenSize.height * 0.015),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(screenSize.height * 0.015),
                   ),
                   child: Row(
@@ -427,7 +428,7 @@ class _GameScreenState extends State<GameScreen> {
                   vertical: screenSize.height * 0.01
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(screenSize.height * 0.015),
                 ),
                 child: FittedBox(
@@ -613,7 +614,7 @@ class _GameScreenState extends State<GameScreen> {
                 child: Container(
                   padding: EdgeInsets.all(screenSize.height * 0.015),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(screenSize.height * 0.02),
                   ),
                   child: Icon(
@@ -672,7 +673,7 @@ class _GameScreenState extends State<GameScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),

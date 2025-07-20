@@ -79,17 +79,17 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     return Container(
       margin: const EdgeInsets.all(20),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+              decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
       child: Column(
         children: [
           _buildCategoryIcon(),
@@ -121,13 +121,13 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.purple[100],
+        color: const Color(0xFF6B73FF).withValues(alpha: 0.1),
         shape: BoxShape.circle,
       ),
       child: Icon(
         _getCategoryIcon(),
         size: 60,
-        color: Colors.purple[600],
+        color: const Color(0xFF6B73FF),
       ),
     );
   }
@@ -150,11 +150,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 20),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.95),
+          color: Colors.white.withValues(alpha: 0.95),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -210,7 +210,7 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       child: ElevatedButton(
         onPressed: _startGame,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orange[600],
+          backgroundColor: const Color(0xFF6B73FF),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
